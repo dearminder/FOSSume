@@ -105,7 +105,8 @@ They also run for every push and pull request (`.github/workflows/tests.yml`).
 `.github/workflows/release.yml` builds a signed APK and publishes it as a release. On GitHub a
 release is made for every version tag (`1.0.1`, `1.0.2`, …). On Forgejo every push to `main` is
 released as the next version (the last tag + 1), which is also tagged. The signing secrets are
-listed at the top of the workflow.
+listed at the top of the workflow. On GitHub the workflow also needs Settings > Actions > General >
+Workflow permissions set to "Read and write permissions", so it can create the release.
 
 ## License
 

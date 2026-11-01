@@ -9,6 +9,10 @@
 #   SIGNING_KEY_ALIAS        the key's alias
 #   SIGNING_KEY_PASSWORD     the key's password
 # The RUNS_ON repository variable picks a runner label other than ubuntu-latest.
+#
+# The job's token has to be able to create releases and tags. Forgejo's token can already write to
+# the repository (Forgejo ignores a permissions: block). On GitHub set Settings > Actions > General >
+# Workflow permissions to "Read and write permissions".
 name: Release
 
 on:
@@ -20,9 +24,6 @@ on:
 
 # Two quick pushes would otherwise both pick the same version.
 concurrency: release
-
-permissions:
-  contents: write
 
 jobs:
   release:
