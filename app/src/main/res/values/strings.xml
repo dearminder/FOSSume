@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">FOSSume</string>
+
+    <string name="tab_home">Home</string>
+    <string name="tab_settings">Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_remove_last">Remove last press</string>
+    <string name="cd_forget_player">Forget this player</string>
+
+    <!-- Home -->
+    <string name="home_status">Status</string>
+    <string name="status_working">Working</string>
+    <string name="status_not_working">Not working</string>
+    <string name="status_active_screen_off">Volume keys control music while the screen is off.</string>
+    <string name="status_active_always">Volume keys control music at all times.</string>
+    <string name="status_missing_accessibility">Turn on the accessibility service</string>
+    <string name="status_service_stuck">The accessibility service is on but not running - turn it off and on again</string>
+    <string name="status_missing_notification_access">Grant notification access</string>
+    <string name="status_fix">Open settings</string>
+    <string name="home_players">Detected players</string>
+    <string name="home_players_helper">Seen since FOSSume started. Settings keeps a list of every player for good.</string>
+    <string name="home_players_empty">No players yet. Start playing music in any app and it will show up here.</string>
+    <string name="home_players_no_access">Players are detected through notification access - grant it in Settings.</string>
+    <string name="player_playing">Playing</string>
+    <string name="player_disabled">Off</string>
+
+    <!-- Permissions -->
+    <string name="section_permissions">Permissions</string>
+    <string name="perm_accessibility">Accessibility service</string>
+    <string name="perm_accessibility_helper">Lets FOSSume receive the volume key presses. Find FOSSume on the list and turn it on.</string>
+    <string name="perm_notification_access">Notification access</string>
+    <string name="perm_notification_access_helper">Lets FOSSume find your music player and control it. Turn on the switch next to FOSSume.</string>
+    <string name="perm_restricted_hint">Android blocks these switches for apps installed outside an app store. In App info, tap ⋮ in the corner, choose \"Allow restricted settings\" and try again.</string>
+    <string name="perm_restricted_open">App info</string>
+    <string name="perm_summary_done">All set - FOSSume has everything it needs</string>
+    <string name="perm_summary_missing">%1$d of %2$d required permissions still missing</string>
+    <string name="perm_required">Required</string>
+    <string name="perm_recommended">Recommended</string>
+    <string name="perm_granted">Turned on</string>
+    <string name="perm_change">Change</string>
+    <string name="perm_accessibility_button">Turn on accessibility</string>
+    <string name="perm_notification_access_button">Grant notification access</string>
+    <string name="perm_battery_button">Allow unrestricted battery use</string>
+    <string name="perm_restricted_title">Switch greyed out?</string>
+    <string name="perm_battery">Unrestricted battery use</string>
+    <string name="perm_battery_helper">Keeps the system from putting FOSSume to sleep while the screen is off.</string>
+
+    <!-- Notifications -->
+    <string name="section_notifications">Notifications</string>
+    <string name="status_notification_label">Status notification</string>
+    <string name="status_notification_helper">Keeps FOSSume running in the background. Hiding it won\'t stop the app.</string>
+    <string name="status_notification_no_permission">Notifications aren\'t allowed for FOSSume, so the status notification can\'t be shown.</string>
+    <string name="status_notification_allow">Allow</string>
+    <string name="status_notification_hide">Hide the notification</string>
+    <string name="status_channel_name">Status</string>
+    <string name="status_channel_description">Shows that volume-key control is active. Hiding it doesn\'t stop the app.</string>
+    <string name="status_notification_title">FOSSume is running</string>
+    <string name="status_notification_text">Volume keys control your music</string>
+
+    <!-- Activation -->
+    <string name="section_activation">Activation</string>
+    <string name="activation_screen_off">Only with the screen off</string>
+    <string name="activation_always">Always</string>
+
+    <!-- Vibration -->
+    <string name="section_vibration">Vibration strength</string>
+    <string name="vibration_off">Off</string>
+    <string name="vibration_normal">Normal</string>
+    <string name="vibration_strong">Strong</string>
+    <string name="vibration_custom">Custom value</string>
+
+    <!-- Timing -->
+    <string name="section_long_press">Long press time (ms)</string>
+    <string name="section_click_gap">Gap between short clicks (ms)</string>
+    <string name="click_gap_helper">How long to wait for the next click of a combination before it counts as finished.</string>
+    <string name="ms_custom">Custom value (ms)</string>
+    <string name="range_helper">From %1$d to %2$d</string>
+
+    <!-- Actions -->
+    <string name="section_actions">Customize actions</string>
+    <string name="actions_players">Supported players</string>
+    <string name="players_saved_helper">Every player seen so far is saved here. Untick one to leave it alone.</string>
+    <string name="players_saved_empty">No players saved yet. Start playing music in any app, then come back here.</string>
+    <string name="actions_long">Long press actions</string>
+    <string name="actions_short">Short click actions</string>
+    <string name="actions_short_helper">E.g. Up, Up → next track. Other clicks change the volume.</string>
+    <string name="trigger_up">Volume up button</string>
+    <string name="trigger_down">Volume down button</string>
+    <string name="trigger_both">Both buttons</string>
+    <string name="key_up">Up</string>
+    <string name="key_down">Down</string>
+    <string name="action_label">Action</string>
+    <string name="action_next">Next track</string>
+    <string name="action_previous">Previous track</string>
+    <string name="action_forward">Fast forward (%d s)</string>
+    <string name="action_rewind">Rewind (%d s)</string>
+    <string name="action_play_pause">Play / Pause</string>
+    <string name="action_like">Add to favorites</string>
+    <string name="action_unlike">Remove from favorites</string>
+    <string name="action_hide">Hide in playlist (Spotify only)</string>
+    <string name="seek_seconds">Seconds</string>
+    <string name="combo_add">Add combination</string>
+    <string name="combo_new">New combination</string>
+    <string name="combo_new_helper">Tap the buttons in the order you\'ll click the volume keys.</string>
+    <string name="combo_empty">No clicks yet</string>
+    <string name="combo_duplicate">This combination already exists.</string>
+    <string name="combo_single_warning">A single click will no longer change the volume while this is on.</string>
+    <string name="combo_confirm">Add</string>
+
+    <string name="about_version">%1$s %2$s · free and open source</string>
+
+    <!-- Shown by the system in Settings → Accessibility -->
+    <string name="accessibility_summary">Skip tracks with the volume keys</string>
+    <string name="accessibility_description">FOSSume only listens to the volume keys, to turn long presses and click combinations into music controls (next track, pause, like…). It doesn\'t read the screen or anything you type.</string>
+</resources>

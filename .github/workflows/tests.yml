@@ -1,0 +1,30 @@
+# Runs the unit tests on every push and pull request, or by hand from the Actions tab (Run workflow).
+# The RUNS_ON repository variable picks a runner label other than ubuntu-latest.
+name: Tests
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ vars.RUNS_ON || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-build
+
+      - name: Unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest
+
+      - name: Upload test reports
+        if: failure()
+        continue-on-error: true # older Forgejo versions can't take artifacts from upload-artifact v4+
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-reports
+          path: app/build/reports/tests/

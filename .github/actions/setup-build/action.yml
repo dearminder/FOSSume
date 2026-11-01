@@ -1,0 +1,48 @@
+# Prepares a runner for the Gradle build. GitHub's ubuntu-latest already has JDK 21 and the Android SDK;
+# other runners (Forgejo/Gitea Actions, act) are often a plain container with neither, and can't always
+# fetch actions/setup-java or gradle/actions, so this uses only shell and actions/cache.
+name: Set up the build
+description: JDK 21, the Android SDK and the Gradle cache
+
+runs:
+  using: composite
+  steps:
+    - name: JDK 21
+      shell: bash
+      run: |
+        java_home=${JAVA_HOME_21_X64:-${JAVA_HOME_21_ARM64:-}} # preinstalled on GitHub's runners
+        if [ -z "$java_home" ]; then
+          case $(uname -m) in
+            x86_64) arch=x64 ;;
+            aarch64|arm64) arch=aarch64 ;;
+            *) echo "::error::No JDK download for $(uname -m)"; exit 1 ;;
+          esac
+          java_home="${RUNNER_TEMP:-/tmp}/jdk-21"
+          mkdir -p "$java_home"
+          curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/$arch/jdk/hotspot/normal/eclipse" \
+            | tar -xz -C "$java_home" --strip-components=1
+        fi
+        echo "JAVA_HOME=$java_home" >> "$GITHUB_ENV"
+        echo "$java_home/bin" >> "$GITHUB_PATH"
+
+    - name: Android SDK
+      shell: bash
+      run: |
+        # Without a preinstalled SDK, an empty one with the accepted license is enough: the Android Gradle
+        # plugin downloads the platform and build tools it needs into it.
+        if [ -z "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}" ]; then
+          sdk="$HOME/android-sdk"
+          mkdir -p "$sdk/licenses"
+          printf '\n24333f8a63b6825ea9c5514f83c2829b004d1fee' > "$sdk/licenses/android-sdk-license"
+          echo "ANDROID_HOME=$sdk" >> "$GITHUB_ENV"
+        fi
+
+    - name: Gradle cache
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          ~/android-sdk
+        key: gradle-${{ runner.os }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'gradle/libs.versions.toml', '**/*.gradle.kts') }}
+        restore-keys: gradle-${{ runner.os }}-

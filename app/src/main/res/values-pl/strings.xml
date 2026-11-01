@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_home">Główna</string>
+    <string name="tab_settings">Ustawienia</string>
+    <string name="cancel">Anuluj</string>
+    <string name="cd_delete">Usuń</string>
+    <string name="cd_remove_last">Usuń ostatnie kliknięcie</string>
+    <string name="cd_forget_player">Zapomnij ten odtwarzacz</string>
+
+    <!-- Home -->
+    <string name="home_status">Status aplikacji</string>
+    <string name="status_working">Działa</string>
+    <string name="status_not_working">Nie działa</string>
+    <string name="status_active_screen_off">Przyciski głośności sterują muzyką przy wyłączonym ekranie.</string>
+    <string name="status_active_always">Przyciski głośności sterują muzyką zawsze.</string>
+    <string name="status_missing_accessibility">Włącz usługę ułatwień dostępu</string>
+    <string name="status_service_stuck">Usługa ułatwień dostępu jest włączona, ale nie działa - wyłącz ją i włącz ponownie</string>
+    <string name="status_missing_notification_access">Przyznaj dostęp do powiadomień</string>
+    <string name="status_fix">Przejdź do ustawień</string>
+    <string name="home_players">Wykrywane odtwarzacze</string>
+    <string name="home_players_helper">Widziane od uruchomienia FOSSume. Ustawienia zapamiętują na stałe listę wszystkich odtwarzaczy.</string>
+    <string name="home_players_empty">Brak odtwarzaczy. Włącz muzykę w dowolnej aplikacji, a pojawi się tutaj.</string>
+    <string name="home_players_no_access">Odtwarzacze są wykrywane dzięki dostępowi do powiadomień - przyznaj go w Ustawieniach.</string>
+    <string name="player_playing">Odtwarza</string>
+    <string name="player_disabled">Wyłączony</string>
+
+    <!-- Permissions -->
+    <string name="section_permissions">Uprawnienia</string>
+    <string name="perm_accessibility">Ułatwienia dostępu</string>
+    <string name="perm_accessibility_helper">Pozwala FOSSume odbierać naciśnięcia przycisków głośności. Znajdź FOSSume na liście i włącz.</string>
+    <string name="perm_notification_access">Dostęp do powiadomień</string>
+    <string name="perm_notification_access_helper">Pozwala FOSSume znaleźć odtwarzacz i nim sterować. Włącz przełącznik przy FOSSume.</string>
+    <string name="perm_restricted_hint">Android blokuje te przełączniki dla aplikacji spoza sklepu. W Informacjach o aplikacji stuknij ⋮ w rogu, wybierz \"Zezwól na ustawienia z ograniczonym dostępem\" i spróbuj ponownie.</string>
+    <string name="perm_restricted_open">Informacje o aplikacji</string>
+    <string name="perm_summary_done">Gotowe - FOSSume ma wszystko, czego potrzebuje</string>
+    <string name="perm_summary_missing">Brakuje jeszcze %1$d z %2$d wymaganych uprawnień</string>
+    <string name="perm_required">Wymagane</string>
+    <string name="perm_recommended">Zalecane</string>
+    <string name="perm_granted">Włączone</string>
+    <string name="perm_change">Zmień</string>
+    <string name="perm_accessibility_button">Włącz ułatwienia dostępu</string>
+    <string name="perm_notification_access_button">Przyznaj dostęp do powiadomień</string>
+    <string name="perm_battery_button">Zezwól na pracę bez ograniczeń</string>
+    <string name="perm_restricted_title">Przełącznik jest wyszarzony?</string>
+    <string name="perm_battery">Bateria bez ograniczeń</string>
+    <string name="perm_battery_helper">Chroni FOSSume przed usypianiem przez system przy wyłączonym ekranie.</string>
+
+    <!-- Notifications -->
+    <string name="section_notifications">Powiadomienia</string>
+    <string name="status_notification_label">Powiadomienie o stanie</string>
+    <string name="status_notification_helper">Utrzymuje FOSSume w tle. Ukrycie go nie wyłącza aplikacji.</string>
+    <string name="status_notification_no_permission">FOSSume nie ma zgody na powiadomienia, więc powiadomienie o stanie nie może się wyświetlić.</string>
+    <string name="status_notification_allow">Zezwól</string>
+    <string name="status_notification_hide">Ukryj powiadomienie</string>
+    <string name="status_channel_name">Stan</string>
+    <string name="status_channel_description">Pokazuje, że sterowanie przyciskami głośności jest aktywne. Ukrycie go nie zatrzymuje aplikacji.</string>
+    <string name="status_notification_title">FOSSume działa</string>
+    <string name="status_notification_text">Przyciski głośności sterują muzyką</string>
+
+    <!-- Activation -->
+    <string name="section_activation">Aktywacja</string>
+    <string name="activation_screen_off">Tylko wył. ekran</string>
+    <string name="activation_always">Zawsze</string>
+
+    <!-- Vibration -->
+    <string name="section_vibration">Intensywność wibracji</string>
+    <string name="vibration_off">Wyłączone</string>
+    <string name="vibration_normal">Normalne</string>
+    <string name="vibration_strong">Silne</string>
+    <string name="vibration_custom">Własna wartość</string>
+
+    <!-- Timing -->
+    <string name="section_long_press">Czas długiego kliknięcia (ms)</string>
+    <string name="section_click_gap">Odstęp między krótkimi kliknięciami (ms)</string>
+    <string name="click_gap_helper">Jak długo czekać na kolejne kliknięcie kombinacji, zanim zostanie uznana za zakończoną.</string>
+    <string name="ms_custom">Własna wartość (ms)</string>
+    <string name="range_helper">Od %1$d do %2$d</string>
+
+    <!-- Actions -->
+    <string name="section_actions">Dostosowanie akcji</string>
+    <string name="actions_players">Obsługiwane odtwarzacze</string>
+    <string name="players_saved_helper">Tu zapisywany jest każdy dotąd wykryty odtwarzacz. Odznacz go, żeby FOSSume go pomijał.</string>
+    <string name="players_saved_empty">Brak zapisanych odtwarzaczy. Włącz muzykę w dowolnej aplikacji i wróć tutaj.</string>
+    <string name="actions_long">Akcje długich kliknięć</string>
+    <string name="actions_short">Akcje krótkich kliknięć</string>
+    <string name="actions_short_helper">Np. Głośniej, Głośniej → następny utwór. Pozostałe kliknięcia zmieniają głośność.</string>
+    <string name="trigger_up">Przycisk podgłaśniania</string>
+    <string name="trigger_down">Przycisk ściszania</string>
+    <string name="trigger_both">Oba przyciski</string>
+    <string name="key_up">Głośniej</string>
+    <string name="key_down">Ciszej</string>
+    <string name="action_label">Akcja</string>
+    <string name="action_next">Następny utwór</string>
+    <string name="action_previous">Poprzedni utwór</string>
+    <string name="action_forward">Przewiń do przodu (%d s)</string>
+    <string name="action_rewind">Przewiń do tyłu (%d s)</string>
+    <string name="action_play_pause">Odtwórz / Pauza</string>
+    <string name="action_like">Dodaj do ulubionych</string>
+    <string name="action_unlike">Usuń z ulubionych</string>
+    <string name="action_hide">Ukryj na playliście (tylko Spotify)</string>
+    <string name="seek_seconds">Sekundy</string>
+    <string name="combo_add">Dodaj kombinację</string>
+    <string name="combo_new">Nowa kombinacja</string>
+    <string name="combo_new_helper">Stukaj przyciski w kolejności, w jakiej będziesz klikać przyciski głośności.</string>
+    <string name="combo_empty">Brak kliknięć</string>
+    <string name="combo_duplicate">Taka kombinacja już istnieje.</string>
+    <string name="combo_single_warning">Gdy ta kombinacja jest włączona, pojedyncze kliknięcie nie zmieni już głośności.</string>
+    <string name="combo_confirm">Dodaj</string>
+
+    <string name="about_version">%1$s %2$s · wolne i otwarte oprogramowanie</string>
+
+    <!-- Shown by the system in Settings → Accessibility -->
+    <string name="accessibility_summary">Przełączaj utwory przyciskami głośności</string>
+    <string name="accessibility_description">FOSSume nasłuchuje wyłącznie przycisków głośności, aby zamieniać długie naciśnięcia i kombinacje kliknięć na sterowanie muzyką (następny utwór, pauza, polubienie…). Nie odczytuje ekranu ani tego, co wpisujesz.</string>
+</resources>
