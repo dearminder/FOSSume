@@ -6,7 +6,7 @@
 
 Free and open source app for skipping tracks with the volume keys - also with the screen off.
 Hold volume up for the next track, volume down for the previous one, or set up your own long
-presses and click combinations. Works with any music app, with no account and no internet access.
+presses and click combinations. Works with any music app, with no account and nothing sent anywhere.
 
 <p align="center">
   <img src="screenshots/FOSSume1.webp" width="200" alt="The home screen: status Working, and Poweramp among the detected players">
@@ -33,10 +33,12 @@ presses and click combinations. Works with any music app, with no account and no
   keeps a list of every player seen so far, where any of them can be left alone
 
 **The app**
-- Only with the screen off, or always - your choice
+- Only with the screen off or locked, or always - your choice
 - Adjustable long press time, gap between clicks and vibration strength
 - Volume keys go back to normal during calls
 - Material 3 interface with Material You colors and a light/dark theme
+- Checks GitHub for a new release on request (a button in Settings), or once a day if you turn
+  that on
 - English and Polish
 
 ## Requirements
@@ -55,6 +57,10 @@ FOSSume needs two permissions, and Settings walks you through both:
 
 Unrestricted battery use is recommended, so the system doesn't put FOSSume to sleep with the screen off.
 
+Holding both volume keys for a few seconds is also Android's own accessibility shortcut (Live
+Caption, TalkBack, …). Android handles it before any app gets the keys, so if such a feature
+turns on by itself, remove it from the volume key shortcut in the system's accessibility settings.
+
 On Android 13 and newer, apps installed outside an app store get the switches for these
 permissions greyed out at first. Open App info, tap ⋮ in the corner, choose
 **Allow restricted settings** and try again.
@@ -67,6 +73,7 @@ permissions greyed out at first. Open App info, tap ⋮ in the corner, choose
 | `KeyGestures` | Turns presses into long presses / combinations |
 | `MediaNotificationListener` (notification access) | Required to see other apps' media sessions; also detects players |
 | `MediaControl` | Runs the action on the current player through `MediaController` |
+| `Updates.kt`, `UpdateRules.kt` | The update check against GitHub's latest release |
 | `Settings.kt` | The settings and the saved players, shared by the UI and the services |
 | `MainActivity.kt` | The Compose UI: home screen and settings |
 
@@ -75,7 +82,10 @@ buttons), so how well they work depends on the player.
 
 ## Privacy
 
-FOSSume has no internet permission. It only listens to the volume keys - it doesn't read the
+FOSSume's only network access is the update check: one request to GitHub's API for the latest
+release, made when you tap "Check for updates" or, if you turn on the automatic check, at most once
+a day when you open the app. It's off by default and nothing about you or your device is sent. The
+new APK is downloaded by your browser. FOSSume only listens to the volume keys - it doesn't read the
 screen or anything you type - and it reads media notifications only to find players and their
 buttons.
 

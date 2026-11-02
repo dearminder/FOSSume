@@ -11,7 +11,7 @@
     <string name="home_status">Status aplikacji</string>
     <string name="status_working">Działa</string>
     <string name="status_not_working">Nie działa</string>
-    <string name="status_active_screen_off">Przyciski głośności sterują muzyką przy wyłączonym ekranie.</string>
+    <string name="status_active_locked">Przyciski głośności sterują muzyką przy wyłączonym lub zablokowanym ekranie.</string>
     <string name="status_active_always">Przyciski głośności sterują muzyką zawsze.</string>
     <string name="status_missing_accessibility">Włącz usługę ułatwień dostępu</string>
     <string name="status_service_stuck">Usługa ułatwień dostępu jest włączona, ale nie działa - wyłącz ją i włącz ponownie</string>
@@ -59,7 +59,7 @@
 
     <!-- Activation -->
     <string name="section_activation">Aktywacja</string>
-    <string name="activation_screen_off">Tylko wył. ekran</string>
+    <string name="activation_locked">Tylko przy wył. lub zablokowanym ekranie</string>
     <string name="activation_always">Zawsze</string>
 
     <!-- Vibration -->
@@ -106,6 +106,21 @@
     <string name="combo_duplicate">Taka kombinacja już istnieje.</string>
     <string name="combo_single_warning">Gdy ta kombinacja jest włączona, pojedyncze kliknięcie nie zmieni już głośności.</string>
     <string name="combo_confirm">Dodaj</string>
+    <string name="both_keys_shortcut_hint">Przytrzymanie obu przycisków przez kilka sekund to także skrót ułatwień dostępu Androida (np. Napisy na żywo albo TalkBack). Android dostaje przyciski przed FOSSume, więc jeśli ta funkcja włącza się sama, usuń ją ze skrótu przycisków głośności.</string>
+    <string name="both_keys_shortcut_open">Ustawienia ułatwień dostępu</string>
+
+<!-- Updates -->
+    <string name="section_updates">Aktualizacje</string>
+    <string name="update_auto_label">Sprawdzaj automatycznie</string>
+    <string name="update_auto_helper">Raz dziennie przy otwarciu FOSSume. Z GitHuba pobierany jest tylko numer najnowszej wersji.</string>
+    <string name="update_installed">Zainstalowana wersja: %s</string>
+    <string name="update_check">Sprawdź aktualizacje</string>
+    <string name="update_checking">Sprawdzanie…</string>
+    <string name="update_up_to_date">Masz najnowszą wersję.</string>
+    <string name="update_failed">Nie udało się połączyć z GitHubem. Sprawdź połączenie z internetem i spróbuj ponownie.</string>
+    <string name="update_available_title">Dostępna aktualizacja</string>
+    <string name="update_available">Dostępna jest wersja FOSSume %s.</string>
+    <string name="update_download">Pobierz</string>
 
     <string name="about_version">%1$s %2$s · wolne i otwarte oprogramowanie</string>
 

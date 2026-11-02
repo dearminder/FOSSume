@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Only for asking GitHub about a new release - by the button in Settings, or the automatic check if it's turned on -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Confirming an action with a short buzz -->
     <uses-permission android:name="android.permission.VIBRATE" />
 

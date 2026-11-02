@@ -153,6 +153,9 @@ private fun App(resumeTick: Int, requestNotifications: () -> Unit) {
         }
     }
 
+    // Once per app start; Updates itself keeps it to once a day and only with the setting on.
+    LaunchedEffect(Unit) { Updates.checkIfDue(context, settings) }
+
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     BackHandler(enabled = tab == Tab.SETTINGS) { tab = Tab.HOME }
 
@@ -202,6 +205,7 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
     val notificationAccess = remember(resumeTick) { isNotificationAccessGranted(context) }
     val detected by Players.detected.collectAsState()
     val playing by Players.playing.collectAsState()
+    val update by Updates.state.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -226,6 +230,16 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
                 activation = settings.activation,
                 onFix = onOpenSettings
             )
+        }
+        (update as? UpdateState.Available)?.let { available ->
+            item {
+                HintCard(
+                    title = stringResource(R.string.update_available_title),
+                    text = stringResource(R.string.update_available, available.release.version),
+                    action = stringResource(R.string.update_download),
+                    onAction = { Updates.download(context, available.release) }
+                )
+            }
         }
         item {
             SectionHeader(stringResource(R.string.home_players), painterResource(R.drawable.ic_music_note))
@@ -298,7 +312,7 @@ private fun StatusCard(
             }
             if (working) {
                 Text(
-                    stringResource(if (activation == Activation.SCREEN_OFF) R.string.status_active_screen_off else R.string.status_active_always),
+                    stringResource(if (activation == Activation.LOCKED) R.string.status_active_locked else R.string.status_active_always),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
@@ -495,8 +509,8 @@ private fun SettingsScreen(
 
         // ---------- Activation ----------
         SectionHeader(stringResource(R.string.section_activation), painterResource(R.drawable.ic_smartphone))
-        RadioRow(stringResource(R.string.activation_screen_off), settings.activation == Activation.SCREEN_OFF) {
-            onChange(settings.copy(activation = Activation.SCREEN_OFF))
+        RadioRow(stringResource(R.string.activation_locked), settings.activation == Activation.LOCKED) {
+            onChange(settings.copy(activation = Activation.LOCKED))
         }
         RadioRow(stringResource(R.string.activation_always), settings.activation == Activation.ALWAYS) {
             onChange(settings.copy(activation = Activation.ALWAYS))
@@ -618,6 +632,18 @@ private fun SettingsScreen(
                 )
             }
         }
+        if (settings.longAction(LongTrigger.BOTH).enabled) {
+            // Android sees the keys before any accessibility service, so this can't be blocked here.
+            Text(
+                stringResource(R.string.both_keys_shortcut_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            TextButton(onClick = { openAccessibilityList(context) }) {
+                Text(stringResource(R.string.both_keys_shortcut_open))
+            }
+        }
 
         SubHeader(stringResource(R.string.actions_short))
         Text(
@@ -645,6 +671,16 @@ private fun SettingsScreen(
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.combo_add))
         }
+
+        // ---------- Updates ----------
+        SectionHeader(stringResource(R.string.section_updates), painterResource(R.drawable.ic_update))
+        SwitchRow(
+            label = stringResource(R.string.update_auto_label),
+            helper = stringResource(R.string.update_auto_helper),
+            checked = settings.autoUpdateCheck,
+            onCheckedChange = { onChange(settings.copy(autoUpdateCheck = it)) }
+        )
+        UpdateCard()
 
         Spacer(Modifier.height(32.dp))
         AboutLine()
@@ -822,20 +858,56 @@ private fun AddComboDialog(existing: Set<String>, onDismiss: () -> Unit, onAdd: 
     )
 }
 
+/** The result of the last check, and the button that starts one - or downloads what it found. */
+@Composable
+private fun UpdateCard() {
+    val context = LocalContext.current
+    val state by Updates.state.collectAsState()
+    val installed = remember { installedVersion(context).orEmpty() }
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (state is UpdateState.Available) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val message = when (val s = state) {
+                UpdateState.Idle, UpdateState.Checking -> stringResource(R.string.update_installed, installed)
+                UpdateState.UpToDate -> stringResource(R.string.update_up_to_date)
+                is UpdateState.Available -> stringResource(R.string.update_available, s.release.version)
+                UpdateState.Failed -> stringResource(R.string.update_failed)
+            }
+            Text(message, style = MaterialTheme.typography.bodyMedium)
+            when (val s = state) {
+                is UpdateState.Available -> Button(
+                    onClick = { Updates.download(context, s.release) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)
+                ) {
+                    Text(stringResource(R.string.update_download), style = MaterialTheme.typography.titleSmall)
+                }
+                else -> OutlinedButton(
+                    onClick = { Updates.check(context) },
+                    enabled = s != UpdateState.Checking,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)
+                ) {
+                    if (s == UpdateState.Checking) {
+                        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.update_checking))
+                    } else {
+                        Icon(painterResource(R.drawable.ic_update), contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.update_check))
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun AboutLine() {
     val context = LocalContext.current
-    val version = remember {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0)).versionName
-            } else {
-                @Suppress("DEPRECATION") context.packageManager.getPackageInfo(context.packageName, 0).versionName
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
+    val version = remember { installedVersion(context) }
     Text(
         stringResource(R.string.about_version, stringResource(R.string.app_name), version.orEmpty()),
         style = MaterialTheme.typography.bodySmall,

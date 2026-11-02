@@ -81,6 +81,12 @@ fun openAccessibilitySettings(context: Context) {
     }
 }
 
+/**
+ * The whole accessibility list - where the system's volume-key shortcut (hold both keys) is set,
+ * per feature on Pixel, under "Advanced settings" on Samsung. There's no public screen for it alone.
+ */
+fun openAccessibilityList(context: Context) = context.startFirst(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+
 fun openNotificationAccessSettings(context: Context) {
     val component = ComponentName(context, MediaNotificationListener::class.java).flattenToString()
     val intents = buildList {

@@ -1,6 +1,7 @@
 package com.dearminder.fossume
 
 import android.accessibilityservice.AccessibilityService
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +14,7 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
+import android.media.AudioAttributes
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -44,14 +46,16 @@ class VolumeKeyService : AccessibilityService() {
     // Looked up once - they're needed on every key press.
     private val power by lazy { getSystemService(PowerManager::class.java) }
     private val audio by lazy { getSystemService(AudioManager::class.java) }
+    private val keyguard by lazy { getSystemService(KeyguardManager::class.java) }
     private lateinit var settings: AppSettings
     private lateinit var gestures: KeyGestures
     private var foreground = false
 
     // Kept in a field: SharedPreferences only holds its listeners weakly.
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        // The player list shares the file but isn't a setting - no need to re-parse everything.
-        if (key == Prefs.DETECTED_PLAYERS) return@OnSharedPreferenceChangeListener
+        // The player list and the update check time share the file but aren't settings - no need
+        // to re-parse everything.
+        if (key == Prefs.DETECTED_PLAYERS || key == Prefs.LAST_UPDATE_CHECK) return@OnSharedPreferenceChangeListener
         settings = AppSettings.load(this)
         if (key == Prefs.STATUS_NOTIFICATION) updateStatusNotification()
     }
@@ -132,10 +136,25 @@ class VolumeKeyService : AccessibilityService() {
     }
 
     private fun shouldHandle(): Boolean {
-        if (settings.activation == Activation.SCREEN_OFF && power?.isInteractive != false) return false
+        if (settings.activation == Activation.LOCKED && !isLocked()) return false
         // During a call (or while it rings) the keys belong to the call.
         if (audio?.mode != AudioManager.MODE_NORMAL) return false
+        // A ringing alarm is snoozed or silenced with the volume keys.
+        if (isAlarmPlaying()) return false
         return MediaControl.controller(this, settings) != null
+    }
+
+    /**
+     * Screen off, or the lock screen showing. The screen alone isn't enough: a notification, the
+     * pocket sensor or - on many ROMs - the volume key press itself turns it on before the key
+     * reaches us, while the phone is still locked.
+     */
+    private fun isLocked(): Boolean = power?.isInteractive == false || keyguard?.isKeyguardLocked == true
+
+    private fun isAlarmPlaying(): Boolean = try {
+        audio?.activePlaybackConfigurations.orEmpty().any { it.audioAttributes.usage == AudioAttributes.USAGE_ALARM }
+    } catch (e: Exception) {
+        false
     }
 
     private fun runAction(binding: ActionBinding) {

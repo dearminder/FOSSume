@@ -13,7 +13,7 @@
     <string name="home_status">Status</string>
     <string name="status_working">Working</string>
     <string name="status_not_working">Not working</string>
-    <string name="status_active_screen_off">Volume keys control music while the screen is off.</string>
+    <string name="status_active_locked">Volume keys control music while the screen is off or locked.</string>
     <string name="status_active_always">Volume keys control music at all times.</string>
     <string name="status_missing_accessibility">Turn on the accessibility service</string>
     <string name="status_service_stuck">The accessibility service is on but not running - turn it off and on again</string>
@@ -61,7 +61,7 @@
 
     <!-- Activation -->
     <string name="section_activation">Activation</string>
-    <string name="activation_screen_off">Only with the screen off</string>
+    <string name="activation_locked">Only with the screen off or locked</string>
     <string name="activation_always">Always</string>
 
     <!-- Vibration -->
@@ -108,6 +108,21 @@
     <string name="combo_duplicate">This combination already exists.</string>
     <string name="combo_single_warning">A single click will no longer change the volume while this is on.</string>
     <string name="combo_confirm">Add</string>
+    <string name="both_keys_shortcut_hint">Holding both keys for a few seconds is also Android\'s accessibility shortcut (e.g. Live Caption or TalkBack). Android gets the keys before FOSSume, so if that feature turns on by itself, remove it from the volume key shortcut.</string>
+    <string name="both_keys_shortcut_open">Accessibility settings</string>
+
+<!-- Updates -->
+    <string name="section_updates">Updates</string>
+    <string name="update_auto_label">Check automatically</string>
+    <string name="update_auto_helper">Once a day when you open FOSSume. Only the latest release number is fetched from GitHub.</string>
+    <string name="update_installed">Installed version: %s</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">You have the latest version.</string>
+    <string name="update_failed">Couldn\'t reach GitHub. Check your internet connection and try again.</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available">FOSSume %s is available.</string>
+    <string name="update_download">Download</string>
 
     <string name="about_version">%1$s %2$s · free and open source</string>
 

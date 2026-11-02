@@ -8,7 +8,7 @@ import org.junit.Test
 class SettingsTest {
 
     private val base = AppSettings(
-        activation = Activation.SCREEN_OFF,
+        activation = Activation.LOCKED,
         vibration = 50,
         longPressMs = 400,
         clickGapMs = 350,

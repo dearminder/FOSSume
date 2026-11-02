@@ -19,6 +19,9 @@ object Prefs {
     /** The players saved in Settings (the key predates the split into saved and seen-this-session). */
     const val DETECTED_PLAYERS = "detected_players"
     const val STATUS_NOTIFICATION = "status_notification"
+    const val AUTO_UPDATE_CHECK = "auto_update_check"
+    /** When GitHub was last asked for a new release (ms since the epoch). Not a setting, like [DETECTED_PLAYERS]. */
+    const val LAST_UPDATE_CHECK = "last_update_check"
 
     const val DEFAULT_VIBRATION = 50
     const val DEFAULT_LONG_PRESS_MS = 400
@@ -28,8 +31,11 @@ object Prefs {
 
 fun Context.appPrefs(): SharedPreferences = getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE)
 
-/** When the volume keys are taken over: only with the screen off, or also while it's on. */
-enum class Activation { SCREEN_OFF, ALWAYS }
+/**
+ * When the volume keys are taken over: with the screen off or locked (the lock screen showing),
+ * or also while the phone is unlocked. Saved by ordinal - keep the order.
+ */
+enum class Activation { LOCKED, ALWAYS }
 
 enum class VolumeKey { UP, DOWN }
 
@@ -86,7 +92,9 @@ data class AppSettings(
     val shortCombos: List<ShortCombo>,
     /** Players are opted out rather than in, so a newly detected one works straight away. */
     val disabledPlayers: Set<String>,
-    val statusNotification: Boolean
+    val statusNotification: Boolean,
+    /** Ask GitHub for a new release once a day when the app is opened. Off by default - no network unless asked. */
+    val autoUpdateCheck: Boolean = false
 ) {
     fun longAction(trigger: LongTrigger): ActionBinding = longActions[trigger] ?: DEFAULT_LONG_ACTIONS.getValue(trigger)
 
@@ -107,6 +115,7 @@ data class AppSettings(
             .putString(Prefs.SHORT_COMBOS, encodeCombos(shortCombos))
             .putStringSet(Prefs.DISABLED_PLAYERS, disabledPlayers)
             .putBoolean(Prefs.STATUS_NOTIFICATION, statusNotification)
+            .putBoolean(Prefs.AUTO_UPDATE_CHECK, autoUpdateCheck)
             .apply()
     }
 
@@ -121,14 +130,15 @@ data class AppSettings(
         fun load(context: Context): AppSettings {
             val p = context.appPrefs()
             return AppSettings(
-                activation = Activation.entries.getOrElse(p.getInt(Prefs.ACTIVATION, 0)) { Activation.SCREEN_OFF },
+                activation = Activation.entries.getOrElse(p.getInt(Prefs.ACTIVATION, 0)) { Activation.LOCKED },
                 vibration = p.getInt(Prefs.VIBRATION, Prefs.DEFAULT_VIBRATION).coerceIn(MIN_VIBRATION, MAX_VIBRATION),
                 longPressMs = p.getInt(Prefs.LONG_PRESS_MS, Prefs.DEFAULT_LONG_PRESS_MS).coerceIn(MIN_LONG_PRESS_MS, MAX_LONG_PRESS_MS),
                 clickGapMs = p.getInt(Prefs.CLICK_GAP_MS, Prefs.DEFAULT_CLICK_GAP_MS).coerceIn(MIN_CLICK_GAP_MS, MAX_CLICK_GAP_MS),
                 longActions = parseLongActions(p.getString(Prefs.LONG_ACTIONS, null)),
                 shortCombos = parseCombos(p.getString(Prefs.SHORT_COMBOS, null)),
                 disabledPlayers = p.getStringSet(Prefs.DISABLED_PLAYERS, null)?.toSet() ?: emptySet(),
-                statusNotification = p.getBoolean(Prefs.STATUS_NOTIFICATION, true)
+                statusNotification = p.getBoolean(Prefs.STATUS_NOTIFICATION, true),
+                autoUpdateCheck = p.getBoolean(Prefs.AUTO_UPDATE_CHECK, false)
             )
         }
 
