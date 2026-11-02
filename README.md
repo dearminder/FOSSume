@@ -34,6 +34,9 @@ presses and click combinations. Works with any music app, with no account and no
 
 **The app**
 - Only with the screen off or locked, or always - your choice
+- Works with Always On Display and with the screen completely off. With the screen fully off
+  Android gives the volume keys to no app, only to the media volume, so FOSSume stands in as the
+  media volume control while the screen is off (a switch in Settings turns this off)
 - Adjustable long press time, gap between clicks and vibration strength
 - Volume keys go back to normal during calls
 - Material 3 interface with Material You colors and a light/dark theme
@@ -72,6 +75,7 @@ permissions greyed out at first. Open App info, tap ⋮ in the corner, choose
 | `VolumeKeyService` (accessibility service) | Gets the volume keys before the system (`flagRequestFilterKeyEvents`) |
 | `KeyGestures` | Turns presses into long presses / combinations |
 | `MediaNotificationListener` (notification access) | Required to see other apps' media sessions; also detects players |
+| `ScreenOffSession` | With the screen fully off, receives the keys as an invisible media session's volume control |
 | `MediaControl` | Runs the action on the current player through `MediaController` |
 | `Updates.kt`, `UpdateRules.kt` | The update check against GitHub's latest release |
 | `Settings.kt` | The settings and the saved players, shared by the UI and the services |

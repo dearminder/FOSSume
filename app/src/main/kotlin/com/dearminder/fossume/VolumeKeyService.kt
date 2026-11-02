@@ -20,6 +20,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
@@ -36,6 +37,8 @@ class VolumeKeyService : AccessibilityService() {
     companion object {
         const val STATUS_CHANNEL = "status"
         private const val STATUS_ID = 1
+        /** How soon after [onKeyEvent] let a press through it may reach [ScreenOffSession] as well. */
+        private const val PASSED_WINDOW_MS = 500L
 
         private val _connected = MutableStateFlow(false)
         /** Whether the system has actually bound the service (it's enabled and running). */
@@ -50,6 +53,15 @@ class VolumeKeyService : AccessibilityService() {
     private lateinit var settings: AppSettings
     private lateinit var gestures: KeyGestures
     private var foreground = false
+    private var screenOff: ScreenOffSession? = null
+    /** Keys pressed with the display fully off, in the order they went down - a release doesn't say which key it was. */
+    private val screenOffHeld = mutableListOf<VolumeKey>()
+    /** When [onKeyEvent] last let each key's press through to the system. */
+    private val passedAt = mutableMapOf<VolumeKey, Long>()
+    // With the screen off the CPU may fall asleep mid-gesture, stalling the long press and click timers.
+    private val wakeLock by lazy {
+        power?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FOSSume:keys")?.apply { setReferenceCounted(false) }
+    }
 
     // Kept in a field: SharedPreferences only holds its listeners weakly.
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -58,6 +70,7 @@ class VolumeKeyService : AccessibilityService() {
         if (key == Prefs.DETECTED_PLAYERS || key == Prefs.LAST_UPDATE_CHECK) return@OnSharedPreferenceChangeListener
         settings = AppSettings.load(this)
         if (key == Prefs.STATUS_NOTIFICATION) updateStatusNotification()
+        if (key == Prefs.SCREEN_OFF_KEYS) updateScreenOffSession()
     }
 
     // Sent to the app when its language changes in system Settings → Apps → FOSSume → Language,
@@ -66,11 +79,21 @@ class VolumeKeyService : AccessibilityService() {
         override fun onReceive(context: Context, intent: Intent) = updateStatusNotification()
     }
 
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = updateScreenOffSession()
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         settings = AppSettings.load(this)
         appPrefs().registerOnSharedPreferenceChangeListener(prefsListener)
         ContextCompat.registerReceiver(this, localeReceiver, IntentFilter(Intent.ACTION_LOCALE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
+        val screenFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
+        ContextCompat.registerReceiver(this, screenReceiver, screenFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        Players.onSessionToFront = { screenOff?.claim() }
         gestures = KeyGestures(
             settings = { settings },
             shouldHandle = ::shouldHandle,
@@ -84,6 +107,7 @@ class VolumeKeyService : AccessibilityService() {
         )
         _connected.value = true
         updateStatusNotification()
+        updateScreenOffSession()
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
@@ -93,10 +117,53 @@ class VolumeKeyService : AccessibilityService() {
             KeyEvent.KEYCODE_VOLUME_DOWN -> VolumeKey.DOWN
             else -> return false
         }
+        keepAwake()
         return when (event.action) {
-            KeyEvent.ACTION_DOWN -> gestures.onKeyDown(key, event.repeatCount)
+            KeyEvent.ACTION_DOWN -> gestures.onKeyDown(key, event.repeatCount).also {
+                if (!it && event.repeatCount == 0) passedAt[key] = SystemClock.uptimeMillis()
+            }
             KeyEvent.ACTION_UP -> gestures.onKeyUp(key)
             else -> false
+        }
+    }
+
+    /** A volume key with the display fully off, through [ScreenOffSession]: +1 / -1 pressed, 0 released. */
+    private fun onScreenOffKey(direction: Int) {
+        if (!::gestures.isInitialized) return
+        keepAwake()
+        if (direction == 0) {
+            screenOffHeld.removeFirstOrNull()?.let { gestures.onKeyUp(it) }
+            return
+        }
+        val key = if (direction > 0) VolumeKey.UP else VolumeKey.DOWN
+        // onKeyEvent already had this press (Always On Display) and let it through - just a volume step.
+        val passed = passedAt.remove(key)
+        if (passed != null && SystemClock.uptimeMillis() - passed < PASSED_WINDOW_MS) {
+            directVolume(key)
+            return
+        }
+        screenOffHeld += key
+        if (!gestures.onKeyDown(key, 0)) directVolume(key)
+    }
+
+    /** Takes [ScreenOffSession] in front of the players while the screen is off, and away when it comes on. */
+    private fun updateScreenOffSession() {
+        val wanted = _connected.value && settings.screenOffKeys && power?.isInteractive == false
+        if (wanted) {
+            val session = screenOff ?: ScreenOffSession(this, ::onScreenOffKey) { event ->
+                MediaControl.controller(this, settings)?.dispatchMediaButtonEvent(event)
+            }.also { screenOff = it }
+            session.start()
+        } else {
+            screenOff?.stop()
+            // A release that never came must not hold a key forever.
+            screenOffHeld.clear()
+        }
+    }
+
+    private fun keepAwake() {
+        if (power?.isInteractive == false) {
+            wakeLock?.acquire(maxOf(settings.longPressMs, settings.clickGapMs) + 1000L)
         }
     }
 
@@ -129,9 +196,15 @@ class VolumeKeyService : AccessibilityService() {
         appPrefs().unregisterOnSharedPreferenceChangeListener(prefsListener)
         try {
             unregisterReceiver(localeReceiver)
+            unregisterReceiver(screenReceiver)
         } catch (e: IllegalArgumentException) {
             // Never registered - the service was torn down before it connected.
         }
+        Players.onSessionToFront = null
+        screenOff?.release()
+        screenOff = null
+        screenOffHeld.clear()
+        if (wakeLock?.isHeld == true) wakeLock?.release()
         removeStatusNotification()
     }
 
@@ -165,6 +238,11 @@ class VolumeKeyService : AccessibilityService() {
 
     /** What the press would have done without us. */
     private fun stepVolume(key: VolumeKey) {
+        // The usual way goes through the media sessions - with ours in front it would come straight back.
+        if (screenOff?.active == true) {
+            directVolume(key)
+            return
+        }
         val audio = audio ?: return
         val screenOn = power?.isInteractive == true
         audio.adjustSuggestedStreamVolume(
@@ -172,6 +250,19 @@ class VolumeKeyService : AccessibilityService() {
             AudioManager.USE_DEFAULT_STREAM_TYPE,
             if (screenOn) AudioManager.FLAG_SHOW_UI else 0
         )
+    }
+
+    /** A volume step that bypasses [ScreenOffSession]: the call's volume during a call, else the player's. */
+    private fun directVolume(key: VolumeKey) {
+        val audio = audio ?: return
+        val direction = if (key == VolumeKey.UP) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER
+        if (audio.mode != AudioManager.MODE_NORMAL) {
+            audio.adjustStreamVolume(AudioManager.STREAM_VOICE_CALL, direction, 0)
+            return
+        }
+        // The player's own volume - it may be playing on a remote device (Cast, Spotify Connect).
+        val player = MediaControl.controller(this, settings)
+        if (player != null) player.adjustVolume(direction, 0) else audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, 0)
     }
 
     // ---------- Status notification ----------

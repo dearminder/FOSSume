@@ -50,3 +50,25 @@ internal fun seekTarget(
     val target = (position + deltaMs).coerceAtLeast(0L)
     return if (durationMs > 0) target.coerceAtMost(durationMs) else target
 }
+
+// PlaybackState's values.
+private const val STATE_NONE = 0
+private const val STATE_PLAYING = 3
+private const val STATE_FAST_FORWARDING = 4
+private const val STATE_REWINDING = 5
+private const val STATE_BUFFERING = 6
+private const val STATE_CONNECTING = 8
+private const val STATE_SKIPPING_TO_PREVIOUS = 9
+private const val STATE_SKIPPING_TO_NEXT = 10
+
+private val ALWAYS_TO_FRONT = setOf(STATE_FAST_FORWARDING, STATE_REWINDING, STATE_SKIPPING_TO_PREVIOUS, STATE_SKIPPING_TO_NEXT)
+private val STARTING = setOf(STATE_BUFFERING, STATE_CONNECTING, STATE_PLAYING)
+
+/**
+ * Whether a session going from [old] to [new] state moves to the front of the system's list - and
+ * so takes over the volume keys with the screen off. The system's own rule: seeking or skipping
+ * always does, starting to play (or buffer) only when it wasn't already. [old] is [STATE_NONE] for
+ * a session just seen.
+ */
+internal fun movesSessionToFront(old: Int, new: Int): Boolean =
+    new in ALWAYS_TO_FRONT || (old !in STARTING && new in STARTING)

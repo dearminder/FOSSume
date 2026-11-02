@@ -20,6 +20,7 @@ object Prefs {
     const val DETECTED_PLAYERS = "detected_players"
     const val STATUS_NOTIFICATION = "status_notification"
     const val AUTO_UPDATE_CHECK = "auto_update_check"
+    const val SCREEN_OFF_KEYS = "screen_off_keys"
     /** When GitHub was last asked for a new release (ms since the epoch). Not a setting, like [DETECTED_PLAYERS]. */
     const val LAST_UPDATE_CHECK = "last_update_check"
 
@@ -94,7 +95,9 @@ data class AppSettings(
     val disabledPlayers: Set<String>,
     val statusNotification: Boolean,
     /** Ask GitHub for a new release once a day when the app is opened. Off by default - no network unless asked. */
-    val autoUpdateCheck: Boolean = false
+    val autoUpdateCheck: Boolean = false,
+    /** Also take the keys with the display fully off, through [ScreenOffSession]. */
+    val screenOffKeys: Boolean = true
 ) {
     fun longAction(trigger: LongTrigger): ActionBinding = longActions[trigger] ?: DEFAULT_LONG_ACTIONS.getValue(trigger)
 
@@ -116,6 +119,7 @@ data class AppSettings(
             .putStringSet(Prefs.DISABLED_PLAYERS, disabledPlayers)
             .putBoolean(Prefs.STATUS_NOTIFICATION, statusNotification)
             .putBoolean(Prefs.AUTO_UPDATE_CHECK, autoUpdateCheck)
+            .putBoolean(Prefs.SCREEN_OFF_KEYS, screenOffKeys)
             .apply()
     }
 
@@ -138,7 +142,8 @@ data class AppSettings(
                 shortCombos = parseCombos(p.getString(Prefs.SHORT_COMBOS, null)),
                 disabledPlayers = p.getStringSet(Prefs.DISABLED_PLAYERS, null)?.toSet() ?: emptySet(),
                 statusNotification = p.getBoolean(Prefs.STATUS_NOTIFICATION, true),
-                autoUpdateCheck = p.getBoolean(Prefs.AUTO_UPDATE_CHECK, false)
+                autoUpdateCheck = p.getBoolean(Prefs.AUTO_UPDATE_CHECK, false),
+                screenOffKeys = p.getBoolean(Prefs.SCREEN_OFF_KEYS, true)
             )
         }
 

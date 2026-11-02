@@ -515,6 +515,12 @@ private fun SettingsScreen(
         RadioRow(stringResource(R.string.activation_always), settings.activation == Activation.ALWAYS) {
             onChange(settings.copy(activation = Activation.ALWAYS))
         }
+        SwitchRow(
+            label = stringResource(R.string.screen_off_keys_label),
+            helper = stringResource(R.string.screen_off_keys_helper),
+            checked = settings.screenOffKeys,
+            onCheckedChange = { onChange(settings.copy(screenOffKeys = it)) }
+        )
 
         // ---------- Vibration ----------
         SectionHeader(stringResource(R.string.section_vibration), painterResource(R.drawable.ic_vibration))

@@ -51,6 +51,12 @@ object Players {
     /** Sessions in the system's priority order (the most recently active first). */
     private var order: List<MediaSession.Token> = emptyList()
 
+    /**
+     * Called when a player's session moves to the front of the system's list - it has the volume
+     * keys with the screen off now, see [ScreenOffSession].
+     */
+    var onSessionToFront: (() -> Unit)? = null
+
     /** True while [MediaNotificationListener] is connected - the session cache is current then. */
     var tracking = false
         private set
@@ -60,8 +66,11 @@ object Players {
         _detected.value = _detected.value + pkg
     }
 
-    fun onSessions(context: Context, controllers: List<MediaController>) {
+    fun onSessions(context: Context, sessions: List<MediaController>) {
         tracking = true
+        // Our own one isn't a player (ScreenOffSession).
+        val controllers = sessions.filter { it.packageName != context.packageName }
+        var toFront = false
         val tokens = controllers.mapTo(HashSet()) { it.sessionToken }
         watched.keys.filter { it !in tokens }.forEach { token ->
             watched.remove(token)?.let { it.controller.unregisterCallback(it.callback) }
@@ -73,16 +82,23 @@ object Players {
                 // States are cached from the callbacks, so picking a player needs no IPC per session.
                 val cb = object : MediaController.Callback() {
                     override fun onPlaybackStateChanged(state: PlaybackState?) {
-                        watched[token]?.state = state?.state ?: PlaybackState.STATE_NONE
+                        val w = watched[token] ?: return
+                        val old = w.state
+                        w.state = state?.state ?: PlaybackState.STATE_NONE
                         refreshPlaying()
+                        if (movesSessionToFront(old, w.state)) onSessionToFront?.invoke()
                     }
                 }
                 c.registerCallback(cb)
-                watched[token] = Watched(c, cb, c.playbackState?.state ?: PlaybackState.STATE_NONE)
+                val state = c.playbackState?.state ?: PlaybackState.STATE_NONE
+                watched[token] = Watched(c, cb, state)
+                // It may have started playing before we got to watch it.
+                if (movesSessionToFront(PlaybackState.STATE_NONE, state)) toFront = true
             }
         }
         order = controllers.map { it.sessionToken }
         refreshPlaying()
+        if (toFront) onSessionToFront?.invoke()
     }
 
     fun clearSessions() {
@@ -120,7 +136,7 @@ object MediaControl {
         } catch (e: SecurityException) {
             return null
         }
-        val allowed = sessions.filter { it.packageName !in settings.disabledPlayers }
+        val allowed = sessions.filter { it.packageName !in settings.disabledPlayers && it.packageName != context.packageName }
         return allowed.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: allowed.firstOrNull()
     }
 

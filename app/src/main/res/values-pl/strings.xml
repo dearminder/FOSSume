@@ -61,6 +61,8 @@
     <string name="section_activation">Aktywacja</string>
     <string name="activation_locked">Tylko przy wył. lub zablokowanym ekranie</string>
     <string name="activation_always">Zawsze</string>
+    <string name="screen_off_keys_label">Także przy całkiem wygaszonym ekranie</string>
+    <string name="screen_off_keys_helper">Przy całkiem wygaszonym ekranie (bez Always On Display) Android nie przekazuje klawiszy głośności żadnej aplikacji, tylko głośności multimediów. FOSSume podstawia się wtedy jako sterowanie tą głośnością. Wyłącz, jeśli coś zakłóca, np. urządzenia Bluetooth.</string>
 
     <!-- Vibration -->
     <string name="section_vibration">Intensywność wibracji</string>

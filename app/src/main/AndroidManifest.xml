@@ -5,6 +5,9 @@
     <!-- Only for asking GitHub about a new release - by the button in Settings, or the automatic check if it's turned on -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Keeping the CPU awake for the second a gesture takes with the screen off, so its timers don't stall -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <!-- Confirming an action with a short buzz -->
     <uses-permission android:name="android.permission.VIBRATE" />
 

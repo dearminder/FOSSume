@@ -63,6 +63,8 @@
     <string name="section_activation">Activation</string>
     <string name="activation_locked">Only with the screen off or locked</string>
     <string name="activation_always">Always</string>
+    <string name="screen_off_keys_label">Also with the screen fully off</string>
+    <string name="screen_off_keys_helper">With the screen completely off (no Always On Display) Android gives the volume keys to no app, only to the media volume. FOSSume then stands in as the media volume control. Turn it off if it gets in the way, e.g. of Bluetooth devices.</string>
 
     <!-- Vibration -->
     <string name="section_vibration">Vibration strength</string>

@@ -1,7 +1,9 @@
 package com.dearminder.fossume
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MediaRulesTest {
@@ -109,5 +111,18 @@ class MediaRulesTest {
     fun anUnknownDurationOnlyLimitsTheStart() {
         assertEquals(1_010_000L, seek(position = 1_000_000, duration = 0))
         assertEquals(0L, seek(position = 0, delta = -5_000, duration = -1))
+    }
+
+    @Test
+    fun sessionMovesToFrontWhenItStartsOrSkips() {
+        // PlaybackState: 0 none, 2 paused, 3 playing, 6 buffering, 10 skipping to next.
+        assertTrue(movesSessionToFront(0, 3))
+        assertTrue(movesSessionToFront(2, 3))
+        assertTrue(movesSessionToFront(2, 6))
+        assertTrue(movesSessionToFront(10, 3))
+        assertTrue(movesSessionToFront(3, 10))
+        assertFalse(movesSessionToFront(6, 3))
+        assertFalse(movesSessionToFront(3, 3))
+        assertFalse(movesSessionToFront(3, 2))
     }
 }
