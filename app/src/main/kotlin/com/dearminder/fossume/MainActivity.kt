@@ -206,6 +206,8 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
     val detected by Players.detected.collectAsState()
     val playing by Players.playing.collectAsState()
     val update by Updates.state.collectAsState()
+    // Players turned off in Settings aren't controlled, so there's no point listing them here.
+    val active = remember(detected, settings.disabledPlayers) { detected.filter { it !in settings.disabledPlayers } }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -231,13 +233,23 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
                 onFix = onOpenSettings
             )
         }
-        (update as? UpdateState.Available)?.let { available ->
+        val found = update.foundRelease
+        if (found != null) {
             item {
+                val u = update
                 HintCard(
                     title = stringResource(R.string.update_available_title),
-                    text = stringResource(R.string.update_available, available.release.version),
-                    action = stringResource(R.string.update_download),
-                    onAction = { Updates.download(context, available.release) }
+                    text = if (u is UpdateState.InstallFailed) stringResource(R.string.update_install_failed)
+                        else stringResource(R.string.update_available, found.version),
+                    action = when {
+                        u is UpdateState.Downloading && u.progress != null ->
+                            stringResource(R.string.update_downloading_percent, (u.progress * 100).roundToInt())
+                        u is UpdateState.Downloading -> stringResource(R.string.update_downloading)
+                        u is UpdateState.Installing -> stringResource(R.string.update_installing)
+                        else -> stringResource(R.string.update_download)
+                    },
+                    enabled = u is UpdateState.Available || u is UpdateState.InstallFailed,
+                    onAction = { Updates.install(context, found) }
                 )
             }
         }
@@ -249,7 +261,7 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (detected.isEmpty()) {
+        if (active.isEmpty()) {
             item {
                 Text(
                     stringResource(if (notificationAccess) R.string.home_players_empty else R.string.home_players_no_access),
@@ -258,8 +270,8 @@ private fun HomeScreen(settings: AppSettings, resumeTick: Int, onOpenSettings: (
                 )
             }
         }
-        items(detected, key = { it }) { pkg ->
-            PlayerRow(pkg, isPlaying = pkg in playing, isDisabled = pkg in settings.disabledPlayers)
+        items(active, key = { it }) { pkg ->
+            PlayerRow(pkg, isPlaying = pkg in playing)
         }
     }
 }
@@ -330,10 +342,10 @@ private fun StatusCard(
 }
 
 @Composable
-private fun PlayerRow(pkg: String, isPlaying: Boolean, isDisabled: Boolean) {
+private fun PlayerRow(pkg: String, isPlaying: Boolean) {
     Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(12.dp).alpha(if (isDisabled) 0.6f else 1f),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -343,9 +355,8 @@ private fun PlayerRow(pkg: String, isPlaying: Boolean, isDisabled: Boolean) {
                 Text(info.label, style = MaterialTheme.typography.titleMedium)
                 Text(pkg, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            when {
-                isDisabled -> StatusBadge(stringResource(R.string.player_disabled), MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
-                isPlaying -> StatusBadge(stringResource(R.string.player_playing), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+            if (isPlaying) {
+                StatusBadge(stringResource(R.string.player_playing), MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
     }
@@ -679,17 +690,17 @@ private fun SettingsScreen(
         }
 
         // ---------- Updates ----------
-        SectionHeader(stringResource(R.string.section_updates), painterResource(R.drawable.ic_update))
+        SectionHeader(stringResource(R.string.section_updates), painterResource(R.drawable.ic_system_update))
         SwitchRow(
             label = stringResource(R.string.update_auto_label),
             helper = stringResource(R.string.update_auto_helper),
             checked = settings.autoUpdateCheck,
             onCheckedChange = { onChange(settings.copy(autoUpdateCheck = it)) }
         )
-        UpdateCard()
+        UpdateCheckRow()
 
-        Spacer(Modifier.height(32.dp))
-        AboutLine()
+        Spacer(Modifier.height(24.dp))
+        AboutPanel()
         Spacer(Modifier.height(24.dp))
     }
 
@@ -864,63 +875,90 @@ private fun AddComboDialog(existing: Set<String>, onDismiss: () -> Unit, onAdd: 
     )
 }
 
-/** The result of the last check, and the button that starts one - or downloads what it found. */
+/** Where the last update check got to, and a button to check again - or to install what it found. */
 @Composable
-private fun UpdateCard() {
+private fun UpdateCheckRow() {
     val context = LocalContext.current
     val state by Updates.state.collectAsState()
     val installed = remember { installedVersion(context).orEmpty() }
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = if (state is UpdateState.Available) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val message = when (val s = state) {
-                UpdateState.Idle, UpdateState.Checking -> stringResource(R.string.update_installed, installed)
-                UpdateState.UpToDate -> stringResource(R.string.update_up_to_date)
-                is UpdateState.Available -> stringResource(R.string.update_available, s.release.version)
-                UpdateState.Failed -> stringResource(R.string.update_failed)
+    val found = state.foundRelease
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val (status, isError) = when (val s = state) {
+                UpdateState.Idle -> stringResource(R.string.update_installed, installed) to false
+                UpdateState.Checking -> stringResource(R.string.update_checking) to false
+                UpdateState.UpToDate -> stringResource(R.string.update_up_to_date) to false
+                UpdateState.Failed -> stringResource(R.string.update_failed) to true
+                is UpdateState.Available -> stringResource(R.string.update_available, s.release.version) to false
+                is UpdateState.Downloading -> (s.progress?.let { stringResource(R.string.update_downloading_percent, (it * 100).roundToInt()) }
+                    ?: stringResource(R.string.update_downloading)) to false
+                is UpdateState.Installing -> stringResource(R.string.update_installing) to false
+                is UpdateState.InstallFailed -> stringResource(R.string.update_install_failed) to true
             }
-            Text(message, style = MaterialTheme.typography.bodyMedium)
-            when (val s = state) {
-                is UpdateState.Available -> Button(
-                    onClick = { Updates.download(context, s.release) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)
-                ) {
-                    Text(stringResource(R.string.update_download), style = MaterialTheme.typography.titleSmall)
-                }
-                else -> OutlinedButton(
-                    onClick = { Updates.check(context) },
-                    enabled = s != UpdateState.Checking,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)
-                ) {
-                    if (s == UpdateState.Checking) {
-                        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.update_checking))
-                    } else {
-                        Icon(painterResource(R.drawable.ic_update), contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.update_check))
-                    }
-                }
+            Text(
+                status,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            val busy = state == UpdateState.Checking || state is UpdateState.Downloading || state is UpdateState.Installing
+            FilledTonalButton(
+                onClick = { if (found != null) Updates.install(context, found) else Updates.check(context) },
+                enabled = !busy
+            ) {
+                Text(stringResource(if (found != null) R.string.update_install else R.string.update_check))
+            }
+        }
+        (state as? UpdateState.Downloading)?.let { s ->
+            val progress = s.progress
+            if (progress != null) {
+                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+            } else {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }
 }
 
+private const val LOGO_PX = 168
+
+/** Logo, version and a link to the source on GitHub. */
 @Composable
-private fun AboutLine() {
+private fun AboutPanel() {
     val context = LocalContext.current
-    val version = remember { installedVersion(context) }
-    Text(
-        stringResource(R.string.about_version, stringResource(R.string.app_name), version.orEmpty()),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
+    val version = remember { installedVersion(context).orEmpty() }
+    // The launcher icon is an adaptive icon, which painterResource can't draw - render it once to a bitmap.
+    val logo = remember {
+        context.packageManager.getApplicationIcon(context.packageName).toBitmap(LOGO_PX, LOGO_PX).asImageBitmap()
+    }
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth()
-    )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Image(logo, contentDescription = null, modifier = Modifier.size(56.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.about_version, version),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = { openUrl(context, GITHUB_URL) }) {
+                Icon(painterResource(R.drawable.ic_github), contentDescription = stringResource(R.string.cd_github))
+            }
+        }
+    }
 }
 
 // ---------- Building blocks ----------
@@ -1066,7 +1104,7 @@ private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HintCard(title: String?, text: String, action: String, onAction: () -> Unit) {
+private fun HintCard(title: String?, text: String, action: String, onAction: () -> Unit, enabled: Boolean = true) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -1077,7 +1115,7 @@ private fun HintCard(title: String?, text: String, action: String, onAction: () 
                 Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
             }
             Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
-            OutlinedButton(onClick = onAction, modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)) { Text(action) }
+            OutlinedButton(onClick = onAction, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = BIG_BUTTON_HEIGHT)) { Text(action) }
         }
     }
 }

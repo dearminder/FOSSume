@@ -5,7 +5,8 @@ import org.json.JSONObject
 // ---------- Decisions behind Updates, free of Android types so they're unit-tested on the JVM ----------
 
 internal const val REPOSITORY = "dearminder/FOSSume"
-const val RELEASES_PAGE = "https://github.com/$REPOSITORY/releases/latest"
+const val GITHUB_URL = "https://github.com/$REPOSITORY"
+const val RELEASES_PAGE = "$GITHUB_URL/releases/latest"
 
 /** A published release; [apkUrl] is null if it has no APK attached (yet). */
 data class Release(val version: String, val pageUrl: String, val apkUrl: String?)

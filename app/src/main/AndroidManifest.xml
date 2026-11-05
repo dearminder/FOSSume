@@ -2,8 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Only for asking GitHub about a new release - by the button in Settings, or the automatic check if it's turned on -->
+    <!-- Only for GitHub: asking about a new release (the button in Settings, or the automatic check if it's turned on) and downloading it -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Installing a downloaded update; Android still asks the user to confirm it -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Android 12+: lets later updates skip the confirmation once FOSSume installed itself -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <!-- Keeping the CPU awake for the second a gesture takes with the screen off, so its timers don't stall -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -83,5 +88,19 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- The system installer's answer while an update is installed -->
+        <receiver
+            android:name=".UpdateInstallReceiver"
+            android:exported="false" />
+
+        <!-- Reopens the app once the update it installed has replaced it -->
+        <receiver
+            android:name=".UpdatedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

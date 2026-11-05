@@ -77,7 +77,7 @@ permissions greyed out at first. Open App info, tap ⋮ in the corner, choose
 | `MediaNotificationListener` (notification access) | Required to see other apps' media sessions; also detects players |
 | `ScreenOffSession` | With the screen fully off, receives the keys as an invisible media session's volume control |
 | `MediaControl` | Runs the action on the current player through `MediaController` |
-| `Updates.kt`, `UpdateRules.kt` | The update check against GitHub's latest release |
+| `Updates.kt`, `UpdateRules.kt` | The update check against GitHub's latest release, and installing it |
 | `Settings.kt` | The settings and the saved players, shared by the UI and the services |
 | `MainActivity.kt` | The Compose UI: home screen and settings |
 
@@ -87,9 +87,11 @@ buttons), so how well they work depends on the player.
 ## Privacy
 
 FOSSume's only network access is the update check: one request to GitHub's API for the latest
-release, made when you tap "Check for updates" or, if you turn on the automatic check, at most once
-a day when you open the app. It's off by default and nothing about you or your device is sent. The
-new APK is downloaded by your browser. FOSSume only listens to the volume keys - it doesn't read the
+release, made when you tap "Check now" or, if you turn on the automatic check, at most once
+a day when you open the app. It's off by default and nothing about you or your device is sent.
+Tapping "Install" downloads the new APK from GitHub into FOSSume's cache, hands it to
+the system installer (which asks you to confirm) and deletes the file right away; once installed,
+FOSSume opens again. FOSSume only listens to the volume keys - it doesn't read the
 screen or anything you type - and it reads media notifications only to find players and their
 buttons.
 

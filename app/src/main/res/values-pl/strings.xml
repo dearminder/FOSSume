@@ -22,7 +22,6 @@
     <string name="home_players_empty">Brak odtwarzaczy. Włącz muzykę w dowolnej aplikacji, a pojawi się tutaj.</string>
     <string name="home_players_no_access">Odtwarzacze są wykrywane dzięki dostępowi do powiadomień - przyznaj go w Ustawieniach.</string>
     <string name="player_playing">Odtwarza</string>
-    <string name="player_disabled">Wyłączony</string>
 
     <!-- Permissions -->
     <string name="section_permissions">Uprawnienia</string>
@@ -116,15 +115,21 @@
     <string name="update_auto_label">Sprawdzaj automatycznie</string>
     <string name="update_auto_helper">Raz dziennie przy otwarciu FOSSume. Z GitHuba pobierany jest tylko numer najnowszej wersji.</string>
     <string name="update_installed">Zainstalowana wersja: %s</string>
-    <string name="update_check">Sprawdź aktualizacje</string>
+    <string name="update_check">Sprawdź teraz</string>
     <string name="update_checking">Sprawdzanie…</string>
     <string name="update_up_to_date">Masz najnowszą wersję.</string>
     <string name="update_failed">Nie udało się połączyć z GitHubem. Sprawdź połączenie z internetem i spróbuj ponownie.</string>
     <string name="update_available_title">Dostępna aktualizacja</string>
     <string name="update_available">Dostępna jest wersja FOSSume %s.</string>
-    <string name="update_download">Pobierz</string>
+    <string name="update_download">Pobierz i zainstaluj</string>
+    <string name="update_install">Zainstaluj</string>
+    <string name="update_downloading">Pobieranie…</string>
+    <string name="update_downloading_percent">Pobieranie… %d%%</string>
+    <string name="update_installing">Instalowanie…</string>
+    <string name="update_install_failed">Nie udało się pobrać lub zainstalować aktualizacji. Spróbuj ponownie.</string>
 
-    <string name="about_version">%1$s %2$s · wolne i otwarte oprogramowanie</string>
+    <string name="about_version">Wersja %1$s</string>
+    <string name="cd_github">Otwórz w GitHubie</string>
 
     <!-- Shown by the system in Settings → Accessibility -->
     <string name="accessibility_summary">Przełączaj utwory przyciskami głośności</string>

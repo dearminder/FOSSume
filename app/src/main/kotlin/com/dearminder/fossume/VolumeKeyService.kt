@@ -108,6 +108,8 @@ class VolumeKeyService : AccessibilityService() {
         _connected.value = true
         updateStatusNotification()
         updateScreenOffSession()
+        // After an update the service is bound again, which lets the app open its screen.
+        Updates.relaunchIfUpdated(this, retryLater = false)
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {

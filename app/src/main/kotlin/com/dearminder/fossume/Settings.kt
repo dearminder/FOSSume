@@ -23,6 +23,9 @@ object Prefs {
     const val SCREEN_OFF_KEYS = "screen_off_keys"
     /** When GitHub was last asked for a new release (ms since the epoch). Not a setting, like [DETECTED_PLAYERS]. */
     const val LAST_UPDATE_CHECK = "last_update_check"
+    /** The version an update being installed replaces, and since when - so the new one can open itself. */
+    const val UPDATING_FROM = "updating_from"
+    const val UPDATING_SINCE = "updating_since"
 
     const val DEFAULT_VIBRATION = 50
     const val DEFAULT_LONG_PRESS_MS = 400
